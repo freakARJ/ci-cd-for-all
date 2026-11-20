@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 2: Commit and Push | Pipeline Quest</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-base="..">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="learn-layout">
+        <aside class="card sidebar-card" id="chapterSidebar"></aside>
+
+        <article class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+            <span class="badge badge-cyan">Chapter 2 of 6</span>
+            <span id="chapterStatusBadge" class="badge badge-yellow">Mission Active</span>
+          </div>
+          <h2 style="margin:0.5rem 0 0.75rem;">Chapter 2: Commit and Push</h2>
+
+          <div class="story-banner">
+            <div class="story-role">Day 1 · Afternoon — Sharing Your Work</div>
+            <div>Your feature is ready locally on <code>feat/user-profile</code>, but your teammates and CI server cannot see it until you stage, commit, and push it to GitHub (<code>origin</code>).</div>
+          </div>
+
+          <h3 style="margin:0 0 0.5rem;font-size:1rem;">Core Concepts</h3>
+          <div class="concept-accordion">
+            <div class="concept-item open">
+              <button class="concept-trigger" type="button"><span>Local vs. Remote Repository (origin) &amp; Pull/Push</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> Your local repo lives on your machine; <code>origin</code> is the remote repository on GitHub. <code>git push</code> uploads commits; <code>git pull</code> downloads teammates' commits.</div>
+                <div><strong>Why developers use it:</strong> Fast offline commits locally, synchronized collaboration via GitHub.</div>
+                <pre class="concept-code">git push -u origin feat/user-profile</pre>
+              </div></div>
+            </div>
+            <div class="concept-item">
+              <button class="concept-trigger" type="button"><span>git status, git add, git commit, git push</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> Inspect changes (<code>status</code>), stage files (<code>add</code>), record a snapshot (<code>commit</code>), and upload to GitHub (<code>push</code>).</div>
+                <pre class="concept-code">git status && git add . && git commit -m "feat: add badge" && git push</pre>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="interactive-box">
+            <div class="interactive-header">
+              <h3>Interactive Mission: Simulated Git Terminal</h3>
+              <button class="btn btn-ghost btn-sm" id="ch2ResetBtn">↺ Reset Terminal</button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.45rem;margin-bottom:0.85rem;">
+              <button class="btn btn-ghost btn-sm" id="cmdStatusBtn">1. git status</button>
+              <button class="btn btn-ghost btn-sm" id="cmdAddBtn">2. git add .</button>
+              <button class="btn btn-ghost btn-sm" id="cmdCommitBtn">3. git commit -m "feat: add badge"</button>
+              <button class="btn btn-cyan btn-sm" id="cmdPushBtn">4. git push -u origin feat/user-profile</button>
+            </div>
+            <div class="terminal-window">
+              <div class="terminal-bar"><span>bash — ~/novacommerce/web-app (feat/user-profile)</span></div>
+              <div class="terminal-body" id="ch2TermBody"></div>
+            </div>
+          </div>
+
+          <div class="quiz-card" id="chapterQuizBox"></div>
+
+          <div class="chapter-footer-nav">
+            <a class="btn btn-ghost" href="chapter-1.html">← Chapter 1</a>
+            <a class="btn btn-primary" href="chapter-3.html">Next: Chapter 3 →</a>
+          </div>
+        </article>
+
+        <aside class="card right-panel-sticky" id="ch2RightPanel"></aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      const state = PQ.getState();
+      PQ.injectTopbarAndModal("chapters");
+      PQ.renderChapterSidebar(2);
+      PQ.initConceptAccordions();
+      PQ.renderChapterQuiz(2);
+      if (state.completedChapters.includes(2)) PQ.markChapterComplete(2);
+
+      function renderRight() {
+        const s = state.ch2Step;
+        document.getElementById("ch2RightPanel").innerHTML = `
+          <span class="badge badge-cyan">Local ↔ Remote Sync Visualizer</span>
+          <h3 style="margin:0.5rem 0 0.75rem;font-size:1rem;">Commit Journey</h3>
+          <svg viewBox="0 0 320 220" width="100%" style="background:var(--bg-surface);border-radius:10px;border:1px solid var(--border-subtle);">
+            <rect x="15" y="20" width="125" height="175" rx="10" fill="rgba(59,130,246,0.08)" stroke="#3b82f6" />
+            <text x="77" y="42" text-anchor="middle" fill="currentColor" font-size="11" font-weight="700">Local Machine</text>
+            <rect x="28" y="58" width="99" height="32" rx="6" fill="${s >= 1 ? "rgba(245,158,11,0.2)" : "rgba(148,163,184,0.1)"}" stroke="${s >= 1 ? "#f59e0b" : "#475569"}" />
+            <text x="77" y="78" text-anchor="middle" fill="currentColor" font-size="10">Working Dir</text>
+            <rect x="28" y="102" width="99" height="32" rx="6" fill="${s >= 2 ? "rgba(6,182,212,0.2)" : "rgba(148,163,184,0.1)"}" stroke="${s >= 2 ? "#06b6d4" : "#475569"}" />
+            <text x="77" y="122" text-anchor="middle" fill="currentColor" font-size="10">Staging Area</text>
+            <rect x="28" y="146" width="99" height="32" rx="6" fill="${s >= 3 ? "rgba(16,185,129,0.22)" : "rgba(148,163,184,0.1)"}" stroke="${s >= 3 ? "#10b981" : "#475569"}" />
+            <text x="77" y="166" text-anchor="middle" fill="currentColor" font-size="10">Local Repo</text>
+            <path d="M 142 162 L 185 162" stroke="${s >= 4 ? "#10b981" : "#475569"}" stroke-width="3" stroke-dasharray="${s >= 4 ? "0" : "4 4"}" />
+            <text x="163" y="150" text-anchor="middle" fill="${s >= 4 ? "#10b981" : "#94a3b8"}" font-size="9" font-weight="700">git push</text>
+            <rect x="188" y="55" width="118" height="140" rx="10" fill="${s >= 4 ? "rgba(16,185,129,0.12)" : "rgba(148,163,184,0.06)"}" stroke="${s >= 4 ? "#10b981" : "#475569"}" />
+            <text x="247" y="80" text-anchor="middle" fill="currentColor" font-size="11" font-weight="700">GitHub (origin)</text>
+            <circle cx="247" cy="132" r="18" fill="${s >= 4 ? "#10b981" : "#334155"}" />
+            <text x="247" y="136" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">${s >= 4 ? "Synced" : "Empty"}</text>
+          </svg>
+        `;
+      }
+
+      const termBody = document.getElementById("ch2TermBody");
+      function renderHistory() {
+        const lines = ['<span class="log-line-muted"># Simulated terminal ready. Run commands step by step:</span>'];
+        if (state.ch2Step >= 1) lines.push('<span class="log-line-cmd">$ git status</span>\n<span class="log-line-warn">Untracked: src/ProfileBadge.js</span>');
+        if (state.ch2Step >= 2) lines.push('<span class="log-line-cmd">$ git add .</span>\n<span class="log-line-ok">✓ Staged src/ProfileBadge.js</span>');
+        if (state.ch2Step >= 3) lines.push('<span class="log-line-cmd">$ git commit -m "feat: add badge"</span>\n<span class="log-line-ok">[feat/user-profile a8f3c21] feat: add badge</span>');
+        if (state.ch2Step >= 4) lines.push('<span class="log-line-cmd">$ git push -u origin feat/user-profile</span>\n<span class="log-line-ok">* [new branch] feat/user-profile -> origin/feat/user-profile</span>');
+        termBody.innerHTML = lines.join("\n");
+        termBody.scrollTop = termBody.scrollHeight;
+        renderRight();
+      }
+
+      function step(target, prevReq, msg) {
+        if (state.ch2Step < prevReq) {
+          termBody.innerHTML += `\n<span class="log-line-err">${msg}</span>`;
+          return;
+        }
+        if (state.ch2Step < target) state.ch2Step = target;
+        if (state.ch2Step === 4) PQ.markChapterComplete(2);
+        PQ.saveState();
+        renderHistory();
+      }
+
+      document.getElementById("cmdStatusBtn").addEventListener("click", () => step(1, 0, ""));
+      document.getElementById("cmdAddBtn").addEventListener("click", () => step(2, 1, "Run git status first."));
+      document.getElementById("cmdCommitBtn").addEventListener("click", () => step(3, 2, "Run git add . before committing."));
+      document.getElementById("cmdPushBtn").addEventListener("click", () => step(4, 3, "Run git commit before pushing."));
+      document.getElementById("ch2ResetBtn").addEventListener("click", () => {
+        state.ch2Step = 0;
+        PQ.saveState();
+        renderHistory();
+      });
+
+      renderHistory();
+    })();
+  </script>
+</body>
+</html>

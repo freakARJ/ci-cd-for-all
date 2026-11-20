@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 1: Git — The Beginning | Pipeline Quest</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-base="..">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="learn-layout">
+        <aside class="card sidebar-card" id="chapterSidebar"></aside>
+
+        <article class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+            <span class="badge badge-cyan">Chapter 1 of 6</span>
+            <span id="chapterStatusBadge" class="badge badge-yellow">Mission Active</span>
+          </div>
+          <h2 style="margin:0.5rem 0 0.75rem;">Chapter 1: Git — The Beginning</h2>
+
+          <div class="story-banner">
+            <div class="story-role">Day 1 · Onboarding as Junior Software Engineer</div>
+            <div>You just joined the Checkout Team at NovaCommerce. Your tech lead assigns your first ticket: add a user profile badge to the header. Before writing code, you need to set up your Git workspace safely.</div>
+          </div>
+
+          <h3 style="margin:0 0 0.5rem;font-size:1rem;">Core Concepts</h3>
+          <div class="concept-accordion">
+            <div class="concept-item open">
+              <button class="concept-trigger" type="button"><span>Git vs. GitHub</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> Git is a local version control tool tracking code history. GitHub is a cloud platform hosting Git repos with Pull Requests and Actions.</div>
+                <div><strong>Why developers use it:</strong> Prevents overwriting teammates' work and enables remote team collaboration.</div>
+                <pre class="concept-code">git init   # tracks project locally before pushing to GitHub</pre>
+              </div></div>
+            </div>
+            <div class="concept-item">
+              <button class="concept-trigger" type="button"><span>Repository, Working Directory &amp; Staging Area</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> A repository stores project history. The working directory holds files you edit; the staging area prepares selected changes for the next commit.</div>
+                <div><strong>Why developers use it:</strong> Lets you group clean, related edits together instead of committing half-finished debug code.</div>
+                <pre class="concept-code">git add src/ProfileBadge.js</pre>
+              </div></div>
+            </div>
+            <div class="concept-item">
+              <button class="concept-trigger" type="button"><span>Commit, Main Branch &amp; Feature Branch</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> A commit is a permanent snapshot. <code>main</code> holds stable production code; a feature branch isolates one task.</div>
+                <div><strong>Why developers use it:</strong> Keeps <code>main</code> always deployable while you build and test.</div>
+                <pre class="concept-code">git checkout -b feat/user-profile</pre>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="interactive-box">
+            <div class="interactive-header">
+              <h3>Interactive Mission: Choose Your Git Workflow</h3>
+              <span class="sim-disclaimer">Visual Git Workspace</span>
+            </div>
+            <p style="font-size:0.88rem;color:var(--text-secondary);margin-top:0;">
+              Your working directory has <code>src/ProfileBadge.js</code>. How will you start?
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.65rem;margin-bottom:0.85rem;">
+              <button class="btn btn-danger btn-sm" id="ch1MainBtn">Option A: Edit directly on main</button>
+              <button class="btn btn-success btn-sm" id="ch1BranchBtn">Option B: Create feature branch (feat/user-profile)</button>
+            </div>
+            <div id="ch1Feedback"></div>
+          </div>
+
+          <div class="quiz-card" id="chapterQuizBox"></div>
+
+          <div class="chapter-footer-nav">
+            <a class="btn btn-ghost" href="../index.html">← Overview</a>
+            <a class="btn btn-primary" href="chapter-2.html">Next: Chapter 2 →</a>
+          </div>
+        </article>
+
+        <aside class="card right-panel-sticky" id="ch1RightPanel"></aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      const state = PQ.getState();
+      PQ.injectTopbarAndModal("chapters");
+      PQ.renderChapterSidebar(1);
+      PQ.initConceptAccordions();
+      PQ.renderChapterQuiz(1);
+      if (state.completedChapters.includes(1)) PQ.markChapterComplete(1);
+
+      function renderDiagram(choice) {
+        const isBranch = choice === "branch";
+        const isMain = choice === "main";
+        document.getElementById("ch1RightPanel").innerHTML = `
+          <span class="badge badge-purple">Live Git Branch Diagram</span>
+          <h3 style="margin:0.5rem 0 0.75rem;font-size:1rem;">Repository Graph</h3>
+          <svg viewBox="0 0 320 200" width="100%" style="background:var(--bg-surface);border-radius:10px;border:1px solid var(--border-subtle);">
+            <line x1="35" y1="55" x2="285" y2="55" stroke="#3b82f6" stroke-width="3" />
+            <circle cx="50" cy="55" r="8" fill="#3b82f6" />
+            <circle cx="125" cy="55" r="8" fill="#3b82f6" />
+            ${isMain ? `<circle cx="215" cy="55" r="9" fill="#ef4444" /><text x="215" y="34" text-anchor="middle" fill="#ef4444" font-size="10" font-weight="700">Unsafe Commit!</text>` : ""}
+            <rect x="20" y="18" width="54" height="20" rx="5" fill="#1d4ed8" />
+            <text x="47" y="32" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">main</text>
+            ${isBranch ? `
+              <path d="M 125 55 C 145 55, 145 130, 175 130 L 270 130" fill="none" stroke="#10b981" stroke-width="3" />
+              <circle cx="190" cy="130" r="8" fill="#10b981" />
+              <circle cx="255" cy="130" r="8" fill="#10b981" />
+              <rect x="165" y="150" width="122" height="22" rx="5" fill="#047857" />
+              <text x="226" y="165" text-anchor="middle" fill="#fff" font-size="10" font-weight="700">feat/user-profile</text>
+            ` : `<text x="160" y="135" text-anchor="middle" fill="#64748b" font-size="11">Select an option on the left</text>`}
+          </svg>
+        `;
+      }
+
+      function choose(choice) {
+        state.ch1Choice = choice;
+        const fb = document.getElementById("ch1Feedback");
+        if (choice === "main") {
+          fb.innerHTML = `<div class="callout danger"><strong>Risky Choice!</strong> Editing directly on <code>main</code> mixes untested work into production-ready code. Create a feature branch instead!</div>`;
+        } else {
+          PQ.markChapterComplete(1);
+          fb.innerHTML = `<div class="callout success"><strong>Great Decision!</strong> <code>git checkout -b feat/user-profile</code> isolates your changes while keeping <code>main</code> clean.</div>`;
+        }
+        renderDiagram(choice);
+        PQ.saveState();
+      }
+
+      document.getElementById("ch1MainBtn").addEventListener("click", () => choose("main"));
+      document.getElementById("ch1BranchBtn").addEventListener("click", () => choose("branch"));
+      if (state.ch1Choice) choose(state.ch1Choice);
+      else renderDiagram(null);
+    })();
+  </script>
+</body>
+</html>

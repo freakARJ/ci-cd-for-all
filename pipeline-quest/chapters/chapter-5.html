@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 5: Testing — Something Goes Wrong! | Pipeline Quest</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-base="..">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="learn-layout">
+        <aside class="card sidebar-card" id="chapterSidebar"></aside>
+
+        <article class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+            <span class="badge badge-cyan">Chapter 5 of 6</span>
+            <span id="chapterStatusBadge" class="badge badge-yellow">Mission Active</span>
+          </div>
+          <h2 style="margin:0.5rem 0 0.75rem;">Chapter 5: Testing — Something Goes Wrong!</h2>
+
+          <div class="story-banner">
+            <div class="story-role">Day 3 · Bug Caught Before Production</div>
+            <div>You refactored the cart discount helper and pushed. Moments later, GitHub turns red ❌ and blocks your Pull Request from merging. Automated testing caught a regression bug!</div>
+          </div>
+
+          <h3 style="margin:0 0 0.5rem;font-size:1rem;">Core Concepts</h3>
+          <div class="concept-accordion">
+            <div class="concept-item open">
+              <button class="concept-trigger" type="button"><span>Unit, Integration &amp; Regression Testing</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> Unit tests check isolated functions; integration tests check modules together; regression tests verify new code didn't break old behavior.</div>
+                <pre class="concept-code">expect(calculateTotal(100, 20)).toBe(80);</pre>
+              </div></div>
+            </div>
+            <div class="concept-item">
+              <button class="concept-trigger" type="button"><span>Status Checks &amp; Pull Request Protection</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> Branch protection rules require CI status checks to pass green before allowing a PR merge into <code>main</code>.</div>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="interactive-box">
+            <div class="interactive-header">
+              <h3>Interactive Mission: Debug a Failing CI Pipeline</h3>
+              <span class="badge badge-red" id="ch5TopBadge">Status Check Failed ❌</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.85rem;">
+              <button class="btn btn-danger btn-sm" id="ch5IgnoreBtn">Ignore Failure &amp; Force Merge</button>
+              <button class="btn btn-ghost btn-sm" id="ch5LogsBtn">Investigate Pipeline Logs</button>
+              <button class="btn btn-success btn-sm" id="ch5FixBtn">Fix Bug &amp; Rerun Pipeline</button>
+            </div>
+            <div id="ch5ActionArea"></div>
+          </div>
+
+          <div class="quiz-card" id="chapterQuizBox"></div>
+
+          <div class="chapter-footer-nav">
+            <a class="btn btn-ghost" href="chapter-4.html">← Chapter 4</a>
+            <a class="btn btn-primary" href="chapter-6.html">Next: Chapter 6 →</a>
+          </div>
+        </article>
+
+        <aside class="card right-panel-sticky" id="ch5RightPanel"></aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      const state = PQ.getState();
+      PQ.injectTopbarAndModal("chapters");
+      PQ.renderChapterSidebar(5);
+      PQ.initConceptAccordions();
+      PQ.renderChapterQuiz(5);
+      if (state.completedChapters.includes(5)) PQ.markChapterComplete(5);
+
+      function render() {
+        const area = document.getElementById("ch5ActionArea");
+        const topBadge = document.getElementById("ch5TopBadge");
+        const isFixed = state.ch5Stage === "fixed";
+
+        topBadge.className = `badge ${isFixed ? "badge-green" : "badge-red"}`;
+        topBadge.textContent = isFixed ? "PR Checks Passed ✓" : "Status Check Failed ❌";
+
+        if (state.ch5Stage === "initial") {
+          area.innerHTML = `<div class="callout danger"><strong>Pipeline Failed at npm test:</strong> Merge blocked. Inspect the logs to find out why!</div>`;
+        } else if (state.ch5Stage === "ignored") {
+          area.innerHTML = `<div class="callout danger"><strong>Blocked by Branch Protection!</strong> Required status checks prevent unsafe code from merging into <code>main</code>.</div>`;
+        } else if (state.ch5Stage === "investigated") {
+          area.innerHTML = `
+            <div class="terminal-window">
+              <div class="terminal-bar"><span>Failed Step: npm test</span><span class="badge badge-red">Exit Code 1</span></div>
+              <div class="terminal-body"><span class="log-line-err">FAIL src/cartDiscount.test.js
+  ✕ calculates 20% discount on $100 subtotal
+    Expected: 80 | Received: 20</span></div>
+            </div>
+            <div class="callout" style="margin-top:0.75rem;">You found the bug! Click <strong>Fix Bug &amp; Rerun Pipeline</strong>.</div>`;
+        } else if (isFixed) {
+          area.innerHTML = `
+            <div class="terminal-window">
+              <div class="terminal-bar"><span>Rerun #2: npm test</span><span class="badge badge-green">Exit Code 0</span></div>
+              <div class="terminal-body"><span class="log-line-ok">PASS src/cartDiscount.test.js (6/6 suites passed)
+All status checks green. PR #42 unlocked!</span></div>
+            </div>`;
+        }
+
+        document.getElementById("ch5RightPanel").innerHTML = `
+          <span class="badge ${isFixed ? "badge-green" : "badge-red"}">GitHub Pull Request Gate</span>
+          <h3 style="margin:0.5rem 0 0.75rem;font-size:1rem;">Pull Request #42</h3>
+          <div style="border:1px solid ${isFixed ? "var(--accent-green)" : "var(--accent-red)"};border-radius:10px;padding:0.9rem;background:var(--bg-surface);">
+            <div style="font-weight:700;margin-bottom:0.4rem;">feat/user-profile → main</div>
+            <div style="font-size:0.84rem;margin-bottom:0.75rem;color:${isFixed ? "var(--accent-green)" : "var(--accent-red)"};">
+              ${isFixed ? "✅ All checks passed" : "❌ CI Pipeline / test failed"}
+            </div>
+            <button class="btn btn-sm ${isFixed ? "btn-success" : "btn-ghost"}" style="width:100%;" ${isFixed ? "" : "disabled"}>
+              ${isFixed ? "Merge Pull Request (Unlocked)" : "🔒 Merge Blocked by Protection"}
+            </button>
+          </div>
+        `;
+      }
+
+      document.getElementById("ch5IgnoreBtn").addEventListener("click", () => { state.ch5Stage = "ignored"; PQ.saveState(); render(); });
+      document.getElementById("ch5LogsBtn").addEventListener("click", () => { state.ch5Stage = "investigated"; PQ.saveState(); render(); });
+      document.getElementById("ch5FixBtn").addEventListener("click", () => {
+        if (state.ch5Stage !== "investigated" && state.ch5Stage !== "fixed") {
+          document.getElementById("ch5ActionArea").innerHTML = `<div class="callout warning">Inspect the pipeline logs first so you know which bug to fix!</div>`;
+          return;
+        }
+        state.ch5Stage = "fixed";
+        PQ.markChapterComplete(5);
+        PQ.saveState();
+        render();
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

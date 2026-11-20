@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Final Assessment | Pipeline Quest</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body data-base=".">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="card" style="max-width:860px;margin:0 auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+          <div>
+            <span class="badge badge-purple">Final Certification Assessment</span>
+            <h2 style="margin:0.4rem 0 0;">Pipeline Quest — 10-Question DevOps Check</h2>
+          </div>
+          <a class="btn btn-ghost btn-sm" href="chapters/chapter-6.html">← Back to Chapters</a>
+        </div>
+        <div id="finalExamContainer"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      const state = PQ.getState();
+      PQ.injectTopbarAndModal("chapters");
+
+      const QUESTIONS = [
+        { topic: "Git & Branching", q: "Why should new features be built on a dedicated feature branch?", options: ["Keeps `main` stable while isolating work for review", "Skips committing", "Makes runners twice as fast"], answer: 0 },
+        { topic: "Git Workflow", q: "Which command sequence stages, commits, and uploads changes?", options: ["git push -> git commit -> git add", "git add . -> git commit -m \"msg\" -> git push", "git status -> git pull -> git checkout"], answer: 1 },
+        { topic: "Local vs Remote", q: "When you run `git commit`, where is the snapshot stored?", options: ["In your local repository on your computer", "On GitHub immediately", "On production"], answer: 0 },
+        { topic: "Workflow Directory", q: "Where must GitHub Actions YAML files live?", options: ["`.github/workflows/`", "`src/workflows/`", "`actions/config.json`"], answer: 0 },
+        { topic: "Workflow Triggers", q: "Which trigger runs automation when a Pull Request is opened or updated?", options: ["`on: pull_request`", "`trigger: merge`", "`when: pr_created`"], answer: 0 },
+        { topic: "Runners", q: "What does `runs-on: ubuntu-latest` specify?", options: ["Your local laptop OS", "The GitHub-hosted Linux VM executing the job", "Your database engine"], answer: 1 },
+        { topic: "Checkout Action", q: "Why do jobs start with `uses: actions/checkout@v4`?", options: ["It installs Node.js", "It clones your repo files onto the fresh empty runner", "It merges the PR"], answer: 1 },
+        { topic: "Branch Protection", q: "If automated unit tests fail on a PR, what should happen?", options: ["Branch protection blocks merging until fixed", "Deploy anyway", "Delete commit history"], answer: 0 },
+        { topic: "Delivery vs Deployment", q: "Which releases every passing `main` build automatically with NO manual gate?", options: ["Continuous Integration", "Continuous Delivery", "Continuous Deployment"], answer: 2 },
+        { topic: "Secrets", q: "How should production deploy tokens be passed to a workflow?", options: ["Hardcoded in `package.json`", "Referenced via `${{ secrets.PROD_TOKEN }}`", "Written in README"], answer: 1 }
+      ];
+
+      function render() {
+        const container = document.getElementById("finalExamContainer");
+        if (state.finalExamSubmitted) {
+          let correct = 0;
+          const missed = [];
+          QUESTIONS.forEach((q, i) => {
+            if (state.finalExamAnswers[i] === q.answer) correct++;
+            else if (!missed.includes(q.topic)) missed.push(q.topic);
+          });
+          const pct = Math.round((correct / QUESTIONS.length) * 100);
+          container.innerHTML = `
+            <div class="callout ${pct >= 70 ? "success" : "warning"}" style="margin-top:1rem;">
+              <h3 style="margin:0 0 0.35rem;">Score: ${correct} / ${QUESTIONS.length} (${pct}%)</h3>
+              <div>${pct >= 80 ? "Outstanding work! You are ready for CI/CD workflows." : "Good effort! Review the highlighted topics below."}</div>
+            </div>
+            <div class="hero-stats" style="margin:1rem 0;">
+              <div class="stat-box"><div class="stat-value" style="color:var(--accent-green);">${correct}</div><div class="stat-label">Correct</div></div>
+              <div class="stat-box"><div class="stat-value" style="color:var(--accent-red);">${QUESTIONS.length - correct}</div><div class="stat-label">Incorrect</div></div>
+              <div class="stat-box"><div class="stat-value">${pct}%</div><div class="stat-label">Accuracy</div></div>
+            </div>
+            <div class="card" style="background:var(--bg-surface);margin-bottom:1rem;">
+              <h4 style="margin:0 0 0.5rem;">Topics Needing Revision</h4>
+              ${missed.length === 0 ? '<span class="badge badge-green">None — 100% mastery!</span>' : `<div style="display:flex;flex-wrap:wrap;gap:0.45rem;">${missed.map((t) => `<span class="badge badge-yellow">${t}</span>`).join("")}</div>`}
+            </div>
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+              <button class="btn btn-primary" id="retakeBtn">↺ Restart Assessment</button>
+              <a class="btn btn-ghost" href="chapters/chapter-1.html">Review Chapters</a>
+            </div>
+          `;
+          document.getElementById("retakeBtn").addEventListener("click", () => {
+            state.finalExamAnswers = {};
+            state.finalExamSubmitted = false;
+            PQ.saveState();
+            render();
+          });
+          return;
+        }
+
+        const answered = Object.keys(state.finalExamAnswers).length;
+        container.innerHTML = `
+          ${QUESTIONS.map((qObj, idx) => `
+            <div class="quiz-question">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;">
+                <strong style="font-size:0.92rem;">${idx + 1}. ${PQ.escapeHtml(qObj.q)}</strong>
+                <span class="badge badge-blue">${qObj.topic}</span>
+              </div>
+              <div class="quiz-options">
+                ${qObj.options.map((opt, oIdx) => `
+                  <button class="quiz-option" style="${state.finalExamAnswers[idx] === oIdx ? "border-color:var(--accent-cyan);background:var(--cyan-soft);" : ""}" data-q="${idx}" data-o="${oIdx}">
+                    ${PQ.escapeHtml(opt)}
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+          `).join("")}
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;flex-wrap:wrap;gap:0.75rem;">
+            <span style="font-size:0.86rem;color:var(--text-secondary);">Answered: ${answered} / ${QUESTIONS.length}</span>
+            <button class="btn btn-success" id="submitExamBtn" ${answered < QUESTIONS.length ? "disabled" : ""}>Submit Final Assessment</button>
+          </div>
+        `;
+
+        container.querySelectorAll("[data-q]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            state.finalExamAnswers[Number(btn.dataset.q)] = Number(btn.dataset.o);
+            PQ.saveState();
+            render();
+          });
+        });
+
+        document.getElementById("submitExamBtn").addEventListener("click", () => {
+          state.finalExamSubmitted = true;
+          PQ.saveState();
+          render();
+        });
+      }
+
+      render();
+    })();
+  </script>
+</body>
+</html>

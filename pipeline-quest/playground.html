@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline Playground &amp; YAML Lab | Pipeline Quest</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body data-base=".">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="section-header" style="margin-top:0.5rem;">
+        <div>
+          <h2>DevOps Playground &amp; Pipeline Simulator</h2>
+          <p>Explore the 10-stage CI/CD pipeline execution and experiment with GitHub Actions YAML.</p>
+        </div>
+        <span class="sim-disclaimer">ℹ Interactive browser simulation (does not execute real GitHub runners)</span>
+      </div>
+
+      <!-- 10-Stage Pipeline Simulator -->
+      <div class="card" style="margin-bottom:1.5rem;">
+        <div class="pipeline-controls">
+          <div>
+            <h3 style="margin:0;font-size:1.12rem;">End-to-End CI/CD Pipeline Visualizer</h3>
+            <div style="font-size:0.82rem;color:var(--text-secondary);">Click any stage node to inspect logs &amp; details.</div>
+          </div>
+          <div class="pipeline-btn-group">
+            <button class="btn btn-cyan btn-sm" id="plRunBtn">▶ Run Pipeline</button>
+            <button class="btn btn-ghost btn-sm" id="plPauseBtn" disabled>⏸ Pause</button>
+            <button class="btn btn-ghost btn-sm" id="plResumeBtn" disabled>⏯ Resume</button>
+            <button class="btn btn-ghost btn-sm" id="plRestartBtn">↺ Restart</button>
+            <label style="display:inline-flex;align-items:center;gap:0.4rem;font-size:0.82rem;cursor:pointer;margin-left:0.4rem;">
+              <input type="checkbox" id="plFailToggle" /><span>Simulate Test Failure</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:0.85rem;font-size:0.78rem;">
+          <span class="badge badge-yellow">● Yellow: Pending</span>
+          <span class="badge badge-cyan">● Cyan: Executing</span>
+          <span class="badge badge-green">● Green: Success</span>
+          <span class="badge badge-red">● Red: Failed</span>
+        </div>
+
+        <div class="pipeline-board">
+          <div class="pipeline-svg-wrap">
+            <svg id="mainPipelineSvg" viewBox="0 0 700 470" width="100%" style="min-width:540px;">
+              <path id="mp-e0" class="pipeline-edge" d="M 145 50 L 185 50" />
+              <path id="mp-e1" class="pipeline-edge" d="M 315 50 L 355 50" />
+              <path id="mp-e2" class="pipeline-edge" d="M 485 50 L 525 50" />
+              <path id="mp-e3" class="pipeline-edge" d="M 590 80 L 590 155" />
+              <path id="mp-e4" class="pipeline-edge" d="M 525 185 L 485 185" />
+              <path id="mp-e5" class="pipeline-edge" d="M 355 185 L 315 185" />
+              <path id="mp-e6" class="pipeline-edge" d="M 185 185 L 145 185" />
+              <path id="mp-e7" class="pipeline-edge" d="M 80 215 L 80 290" />
+              <path id="mp-e8" class="pipeline-edge" d="M 145 320 L 210 320" />
+
+              <g id="mp-n0" class="pipeline-node" data-stage="0"><rect class="node-box" x="15" y="20" width="130" height="60" /><text x="80" y="46" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">1. Developer</text><text x="80" y="64" text-anchor="middle" fill="#94a3b8" font-size="10">Writes Feature</text></g>
+              <g id="mp-n1" class="pipeline-node" data-stage="1"><rect class="node-box" x="185" y="20" width="130" height="60" /><text x="250" y="46" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">2. Git Commit</text><text x="250" y="64" text-anchor="middle" fill="#94a3b8" font-size="10">Local Snapshot</text></g>
+              <g id="mp-n2" class="pipeline-node" data-stage="2"><rect class="node-box" x="355" y="20" width="130" height="60" /><text x="420" y="46" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">3. Git Push</text><text x="420" y="64" text-anchor="middle" fill="#94a3b8" font-size="10">Upload to Origin</text></g>
+              <g id="mp-n3" class="pipeline-node" data-stage="3"><rect class="node-box" x="525" y="20" width="130" height="60" /><text x="590" y="46" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">4. GitHub Repo</text><text x="590" y="64" text-anchor="middle" fill="#94a3b8" font-size="10">Remote Hosted</text></g>
+
+              <g id="mp-n4" class="pipeline-node" data-stage="4"><rect class="node-box" x="525" y="155" width="130" height="60" /><text x="590" y="181" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">5. Actions Trigger</text><text x="590" y="199" text-anchor="middle" fill="#94a3b8" font-size="10">on: push / PR</text></g>
+              <g id="mp-n5" class="pipeline-node" data-stage="5"><rect class="node-box" x="355" y="155" width="130" height="60" /><text x="420" y="181" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">6. Runner</text><text x="420" y="199" text-anchor="middle" fill="#94a3b8" font-size="10">ubuntu-latest VM</text></g>
+              <g id="mp-n6" class="pipeline-node" data-stage="6"><rect class="node-box" x="185" y="155" width="130" height="60" /><text x="250" y="181" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">7. Build</text><text x="250" y="199" text-anchor="middle" fill="#94a3b8" font-size="10">npm ci &amp; bundle</text></g>
+              <g id="mp-n7" class="pipeline-node" data-stage="7"><rect class="node-box" x="15" y="155" width="130" height="60" /><text x="80" y="181" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">8. Auto Tests</text><text x="80" y="199" text-anchor="middle" fill="#94a3b8" font-size="10">Unit &amp; Integration</text></g>
+
+              <g id="mp-n8" class="pipeline-node" data-stage="8"><rect class="node-box" x="15" y="290" width="130" height="60" /><text x="80" y="316" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">9. Deployment</text><text x="80" y="334" text-anchor="middle" fill="#94a3b8" font-size="10">Release Artifact</text></g>
+              <g id="mp-n9" class="pipeline-node" data-stage="9"><rect class="node-box" x="210" y="290" width="210" height="60" /><text x="315" y="316" text-anchor="middle" fill="currentColor" font-size="12" font-weight="700">10. Production</text><text x="315" y="334" text-anchor="middle" fill="#94a3b8" font-size="10">Live User Traffic</text></g>
+
+              <rect x="15" y="385" width="640" height="62" rx="10" fill="rgba(148,163,184,0.08)" stroke="rgba(148,163,184,0.2)" />
+              <text id="mpStatusTitle" x="32" y="411" fill="currentColor" font-size="13" font-weight="700">Pipeline Status: Idle — Ready to Execute</text>
+              <text id="mpStatusSub" x="32" y="431" fill="#94a3b8" font-size="11">Press Run Pipeline to watch each stage execute.</text>
+            </svg>
+          </div>
+
+          <div>
+            <div class="terminal-window">
+              <div class="terminal-bar">
+                <div class="terminal-dots"><span class="terminal-dot" style="background:#ef4444;"></span><span class="terminal-dot" style="background:#f59e0b;"></span><span class="terminal-dot" style="background:#10b981;"></span></div>
+                <span id="plLogStageTitle">Stage Logs</span>
+              </div>
+              <div class="terminal-body" id="plLogsBody" style="min-height:290px;max-height:360px;">
+                <span class="log-line-muted">[system] Pipeline initialized. Click "Run Pipeline" to begin simulation.</span>
+              </div>
+            </div>
+            <div id="plStageExplainCard" class="callout" style="margin-top:0.85rem;">
+              <strong>Stage Inspector:</strong> Click any node in the diagram to inspect its real-world role.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive YAML Editor -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-bottom:1rem;">
+          <div>
+            <h3 style="margin:0;font-size:1.12rem;">Interactive GitHub Actions YAML Lab</h3>
+            <p style="margin:0.2rem 0 0;font-size:0.84rem;color:var(--text-secondary);">Click any line in <code>.github/workflows/ci.yml</code> to understand it, or modify settings.</p>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="yamlResetBtn">↺ Reset Example</button>
+        </div>
+
+        <div class="yaml-workspace">
+          <div>
+            <div class="yaml-code-panel">
+              <div class="terminal-bar"><span>.github/workflows/ci.yml</span><span class="badge badge-purple">YAML Syntax</span></div>
+              <div id="yamlLinesContainer" style="padding:0.6rem 0;"></div>
+            </div>
+            <div class="callout warning" style="margin-top:0.85rem;font-size:0.82rem;">
+              <strong>YAML ↔ Execution:</strong> GitHub reads this declarative configuration from <code>.github/workflows/</code> on matching events. This editor simulates configuration impact locally without running real GitHub runners.
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="background:var(--bg-surface);margin-bottom:1rem;">
+              <h4 style="margin:0 0 0.75rem;font-size:0.95rem;">Modify Workflow Settings</h4>
+              <div class="yaml-controls-grid">
+                <div class="form-field"><label for="yamlNameInput">Workflow Name</label><input type="text" id="yamlNameInput" value="CI Pipeline" /></div>
+                <div class="form-field"><label for="yamlBranchSelect">Trigger Branch (push)</label><select id="yamlBranchSelect"><option value="main">main</option><option value="develop">develop</option><option value="main, staging">main, staging</option></select></div>
+                <div class="form-field"><label for="yamlPrToggle">Pull Request Trigger</label><select id="yamlPrToggle"><option value="enabled">Enabled (pull_request)</option><option value="disabled">Disabled</option></select></div>
+                <div class="form-field"><label for="yamlRunnerSelect">Runner OS (runs-on)</label><select id="yamlRunnerSelect"><option value="ubuntu-latest">ubuntu-latest</option><option value="windows-latest">windows-latest</option><option value="macos-latest">macos-latest</option></select></div>
+                <div class="form-field"><label for="yamlNodeSelect">Node.js Version</label><select id="yamlNodeSelect"><option value="22">22</option><option value="20">20</option><option value="18">18</option></select></div>
+                <div class="form-field"><label for="yamlTestCmdSelect">Test Step</label><select id="yamlTestCmdSelect"><option value="npm test">npm test</option><option value="npm run lint && npm test">npm run lint && npm test</option><option value="npm test -- --coverage">npm test -- --coverage</option></select></div>
+              </div>
+              <div style="border-top:1px solid var(--border-subtle);padding-top:0.85rem;">
+                <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.45rem;">Live Execution Impact Preview</div>
+                <div id="yamlImpactSummary" style="font-size:0.86rem;color:var(--text-secondary);"></div>
+              </div>
+            </div>
+
+            <div class="card" style="background:var(--bg-surface);">
+              <span class="badge badge-cyan">YAML Line Inspector</span>
+              <h4 style="margin:0.5rem 0 0.35rem;" id="yamlExplainTitle">Click any YAML line on the left</h4>
+              <p style="margin:0;font-size:0.88rem;color:var(--text-secondary);" id="yamlExplainDesc">Selecting a key or step reveals why it exists in a real-world CI/CD workflow.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      PQ.injectTopbarAndModal("playground");
+
+      const PIPELINE_STAGES = [
+        { name: "Developer", desc: "Junior engineer finishes feature & unit tests locally.", log: "[local] Edited src/ProfileBadge.js and tests." },
+        { name: "Git Commit", desc: "Local snapshot created via git commit.", log: "[git] [feat/profile-badge 9c42e10] feat: profile badge" },
+        { name: "Git Push", desc: "Commits uploaded to remote origin.", log: "[git] Pushed feat/profile-badge -> origin" },
+        { name: "GitHub Repository", desc: "GitHub receives objects & updates PR #42.", log: "[github] PR #42 updated on novacommerce/web-app" },
+        { name: "GitHub Actions Trigger", desc: "Event matches .github/workflows/ci.yml.", log: "[actions] Workflow 'CI Pipeline' queued" },
+        { name: "Runner", desc: "Fresh ubuntu-latest VM provisioned.", log: "[runner] ubuntu-24.04 ready. Checked out repo." },
+        { name: "Build", desc: "Installs dependencies via npm ci and bundles app.", log: "[build] npm ci && npm run build -> dist/ ready" },
+        { name: "Automated Tests", desc: "Runs unit and integration tests.", logOk: "[test] PASS 18/18 tests passed.", logFail: "[test] FAIL cartDiscount.test.js · Expected 80, received 20!" },
+        { name: "Deployment", desc: "Deploys artifact using encrypted GitHub Secrets.", log: "[deploy] Authenticated via PROD_TOKEN -> uploaded v1.4.0." },
+        { name: "Production", desc: "Live user traffic served cleanly.", log: "[prod] Health check 200 OK 🚀" }
+      ];
+
+      const sim = { timer: null, currentIdx: -1, status: "idle", nodeStates: Array(10).fill("idle"), logs: [] };
+
+      function updateDom() {
+        for (let i = 0; i < 10; i++) {
+          document.getElementById(`mp-n${i}`).setAttribute("class", `pipeline-node ${sim.nodeStates[i]}`);
+        }
+        for (let e = 0; e < 9; e++) {
+          let cls = "pipeline-edge";
+          if (sim.nodeStates[e] === "success" && sim.nodeStates[e + 1] === "running") cls += " active";
+          else if (sim.nodeStates[e] === "success" && (sim.nodeStates[e + 1] === "success" || sim.nodeStates[e + 1] === "failed")) cls += " done";
+          if (sim.nodeStates[e] === "failed") cls += " error";
+          document.getElementById(`mp-e${e}`).setAttribute("class", cls);
+        }
+        const titleEl = document.getElementById("mpStatusTitle");
+        const subEl = document.getElementById("mpStatusSub");
+        if (sim.status === "idle") { titleEl.textContent = "Pipeline Status: Idle — Ready to Execute"; subEl.textContent = "Press Run Pipeline to watch each stage execute."; }
+        else if (sim.status === "running") { titleEl.textContent = `Executing Stage ${sim.currentIdx + 1}/10: ${PIPELINE_STAGES[sim.currentIdx].name}`; subEl.textContent = PIPELINE_STAGES[sim.currentIdx].desc; }
+        else if (sim.status === "paused") { titleEl.textContent = `Paused at Stage ${sim.currentIdx + 1}`; subEl.textContent = "Click Resume to continue."; }
+        else if (sim.status === "failed") { titleEl.textContent = "Pipeline Failed at Stage 8: Automated Tests ❌"; subEl.textContent = "Deployment blocked to protect production."; }
+        else if (sim.status === "finished") { titleEl.textContent = "Pipeline Succeeded: Deployed to Production ✅"; subEl.textContent = "All 10 stages completed cleanly."; }
+
+        document.getElementById("plRunBtn").disabled = sim.status === "running";
+        document.getElementById("plPauseBtn").disabled = sim.status !== "running";
+        document.getElementById("plResumeBtn").disabled = sim.status !== "paused";
+      }
+
+      function appendLog(line) {
+        sim.logs.push(line);
+        const body = document.getElementById("plLogsBody");
+        body.innerHTML = sim.logs.join("\n");
+        body.scrollTop = body.scrollHeight;
+      }
+
+      function step() {
+        const failMode = document.getElementById("plFailToggle").checked;
+        if (sim.currentIdx >= 0 && sim.currentIdx < 10) {
+          if (sim.currentIdx === 7 && failMode) {
+            sim.nodeStates[7] = "failed";
+            sim.status = "failed";
+            clearInterval(sim.timer);
+            appendLog(`<span class="log-line-err">${PIPELINE_STAGES[7].logFail}</span>`);
+            appendLog(`<span class="log-line-warn">[guard] Deployment & Production aborted.</span>`);
+            updateDom();
+            return;
+          }
+          sim.nodeStates[sim.currentIdx] = "success";
+          appendLog(`<span class="log-line-ok">${sim.currentIdx === 7 ? PIPELINE_STAGES[7].logOk : PIPELINE_STAGES[sim.currentIdx].log}</span>`);
+        }
+        sim.currentIdx++;
+        if (sim.currentIdx >= 10) {
+          sim.status = "finished";
+          clearInterval(sim.timer);
+          appendLog(`<span class="log-line-cmd">✓ Workflow finished successfully!</span>`);
+          updateDom();
+          return;
+        }
+        sim.nodeStates[sim.currentIdx] = "running";
+        appendLog(`<span class="log-line-cmd">▶ Stage ${sim.currentIdx + 1}: ${PIPELINE_STAGES[sim.currentIdx].name}...</span>`);
+        updateDom();
+      }
+
+      document.getElementById("plRunBtn").addEventListener("click", () => {
+        clearInterval(sim.timer);
+        sim.currentIdx = -1;
+        sim.status = "running";
+        sim.nodeStates = Array(10).fill("pending");
+        sim.logs = ['<span class="log-line-muted">[system] Starting 10-stage CI/CD simulation...</span>'];
+        step();
+        sim.timer = setInterval(step, 800);
+      });
+      document.getElementById("plPauseBtn").addEventListener("click", () => {
+        if (sim.status === "running") { clearInterval(sim.timer); sim.status = "paused"; appendLog('<span class="log-line-warn">[system] Paused.</span>'); updateDom(); }
+      });
+      document.getElementById("plResumeBtn").addEventListener("click", () => {
+        if (sim.status === "paused") { sim.status = "running"; appendLog('<span class="log-line-muted">[system] Resumed.</span>'); updateDom(); sim.timer = setInterval(step, 800); }
+      });
+      document.getElementById("plRestartBtn").addEventListener("click", () => {
+        clearInterval(sim.timer);
+        sim.currentIdx = -1; sim.status = "idle"; sim.nodeStates = Array(10).fill("idle");
+        sim.logs = ['<span class="log-line-muted">[system] Reset. Click Run Pipeline to start.</span>'];
+        document.getElementById("plLogsBody").innerHTML = sim.logs[0];
+        updateDom();
+      });
+
+      document.querySelectorAll("#mainPipelineSvg .pipeline-node").forEach((nodeEl) => {
+        nodeEl.addEventListener("click", () => {
+          const idx = Number(nodeEl.dataset.stage);
+          const st = PIPELINE_STAGES[idx];
+          document.getElementById("plLogStageTitle").textContent = `Inspecting Stage ${idx + 1}: ${st.name}`;
+          document.getElementById("plStageExplainCard").innerHTML = `<strong>Stage ${idx + 1} — ${st.name}:</strong> ${st.desc}`;
+        });
+      });
+
+      // YAML Editor
+      const yamlConfig = { name: "CI Pipeline", branch: "main", pr: "enabled", runner: "ubuntu-latest", nodeVersion: "22", testCmd: "npm test", selectedLineIdx: 0 };
+
+      function buildYamlLines() {
+        const lines = [
+          { raw: `name: ${yamlConfig.name || "CI Pipeline"}`, title: "Workflow Name", desc: "Displayed in GitHub Actions UI and PR status checks." },
+          { raw: `on:`, title: "Trigger Block (`on:`)", desc: "Events that automatically start this workflow." },
+          { raw: `  push:`, title: "Push Trigger", desc: "Runs when commits are pushed to listed branches." },
+          { raw: `    branches: [${yamlConfig.branch}]`, title: "Branch Filter", desc: `Limits push runs to [${yamlConfig.branch}].` }
+        ];
+        if (yamlConfig.pr === "enabled") {
+          lines.push({ raw: `  pull_request:`, title: "Pull Request Trigger", desc: "Runs checks when PRs are opened or updated." });
+        }
+        lines.push(
+          { raw: `jobs:`, title: "Jobs Collection", desc: "Groups jobs inside this workflow." },
+          { raw: `  test:`, title: "Job ID (`test:`)", desc: "Unique identifier for this job." },
+          { raw: `    runs-on: ${yamlConfig.runner}`, title: "Runner VM (`runs-on:`)", desc: `Provisions a fresh ${yamlConfig.runner} virtual machine.` },
+          { raw: `    steps:`, title: "Job Steps", desc: "Ordered sequence of actions and shell commands." },
+          { raw: `      - uses: actions/checkout@v4`, title: "Checkout Repository", desc: "Clones your branch code onto the empty runner VM." },
+          { raw: `      - uses: actions/setup-node@v4`, title: "Setup Node.js", desc: "Installs the pinned Node.js runtime." },
+          { raw: `        with:`, title: "Action Inputs", desc: "Passes configuration options to setup-node." },
+          { raw: `          node-version: ${yamlConfig.nodeVersion}`, title: "Node Version", desc: `Uses Node.js v${yamlConfig.nodeVersion}.` },
+          { raw: `      - run: npm ci`, title: "Clean Install", desc: "Installs locked dependencies from package-lock.json." },
+          { raw: `      - run: ${yamlConfig.testCmd}`, title: "Verification Step", desc: `Runs \`${yamlConfig.testCmd}\`; non-zero exit fails the job.` }
+        );
+        return lines;
+      }
+
+      function highlight(raw) {
+        const esc = PQ.escapeHtml(raw);
+        if (!esc.includes(":")) return esc;
+        const i = esc.indexOf(":");
+        return `<span class="yk">${esc.slice(0, i)}</span><span class="ys">:</span><span class="yv">${esc.slice(i + 1)}</span>`;
+      }
+
+      function renderYaml() {
+        const lines = buildYamlLines();
+        if (yamlConfig.selectedLineIdx >= lines.length) yamlConfig.selectedLineIdx = 0;
+        const container = document.getElementById("yamlLinesContainer");
+        container.innerHTML = lines.map((l, i) => `
+          <div class="yaml-line ${i === yamlConfig.selectedLineIdx ? "selected" : ""}" data-y="${i}">
+            <span class="yaml-ln">${i + 1}</span><span>${highlight(l.raw)}</span>
+          </div>
+        `).join("");
+        container.querySelectorAll(".yaml-line").forEach((el) => {
+          el.addEventListener("click", () => { yamlConfig.selectedLineIdx = Number(el.dataset.y); renderYaml(); });
+        });
+        const sel = lines[yamlConfig.selectedLineIdx];
+        document.getElementById("yamlExplainTitle").textContent = sel.title;
+        document.getElementById("yamlExplainDesc").textContent = sel.desc;
+        document.getElementById("yamlImpactSummary").innerHTML = `
+          <div>• Workflow <strong>"${PQ.escapeHtml(yamlConfig.name || "CI Pipeline")}"</strong> triggers on <code>[${yamlConfig.branch}]</code> ${yamlConfig.pr === "enabled" ? "and <code>pull_request</code>" : "(PR triggers off ⚠️)"}.</div>
+          <div>• Runs on <code>${yamlConfig.runner}</code> with <strong>Node.js v${yamlConfig.nodeVersion}</strong> executing <code>${yamlConfig.testCmd}</code>.</div>
+        `;
+      }
+
+      document.getElementById("yamlNameInput").addEventListener("input", (e) => { yamlConfig.name = e.target.value; renderYaml(); });
+      document.getElementById("yamlBranchSelect").addEventListener("change", (e) => { yamlConfig.branch = e.target.value; renderYaml(); });
+      document.getElementById("yamlPrToggle").addEventListener("change", (e) => { yamlConfig.pr = e.target.value; renderYaml(); });
+      document.getElementById("yamlRunnerSelect").addEventListener("change", (e) => { yamlConfig.runner = e.target.value; renderYaml(); });
+      document.getElementById("yamlNodeSelect").addEventListener("change", (e) => { yamlConfig.nodeVersion = e.target.value; renderYaml(); });
+      document.getElementById("yamlTestCmdSelect").addEventListener("change", (e) => { yamlConfig.testCmd = e.target.value; renderYaml(); });
+      document.getElementById("yamlResetBtn").addEventListener("click", () => {
+        Object.assign(yamlConfig, { name: "CI Pipeline", branch: "main", pr: "enabled", runner: "ubuntu-latest", nodeVersion: "22", testCmd: "npm test", selectedLineIdx: 0 });
+        document.getElementById("yamlNameInput").value = yamlConfig.name;
+        document.getElementById("yamlBranchSelect").value = yamlConfig.branch;
+        document.getElementById("yamlPrToggle").value = yamlConfig.pr;
+        document.getElementById("yamlRunnerSelect").value = yamlConfig.runner;
+        document.getElementById("yamlNodeSelect").value = yamlConfig.nodeVersion;
+        document.getElementById("yamlTestCmdSelect").value = yamlConfig.testCmd;
+        renderYaml();
+      });
+
+      renderYaml();
+      updateDom();
+    })();
+  </script>
+</body>
+</html>

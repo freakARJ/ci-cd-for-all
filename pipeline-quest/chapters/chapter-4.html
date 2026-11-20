@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 4: Jobs, Steps and Runners | Pipeline Quest</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-base="..">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="learn-layout">
+        <aside class="card sidebar-card" id="chapterSidebar"></aside>
+
+        <article class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+            <span class="badge badge-cyan">Chapter 4 of 6</span>
+            <span id="chapterStatusBadge" class="badge badge-yellow">Mission Active</span>
+          </div>
+          <h2 style="margin:0.5rem 0 0.75rem;">Chapter 4: Jobs, Steps and Runners</h2>
+
+          <div class="story-banner">
+            <div class="story-role">Day 2 · Inside the CI Server</div>
+            <div>Your workflow triggered! GitHub provisions a fresh <code>ubuntu-latest</code> virtual machine runner to check out your repository, install Node.js, install packages, run tests, and build your app.</div>
+          </div>
+
+          <h3 style="margin:0 0 0.5rem;font-size:1rem;">Core Concepts</h3>
+          <div class="concept-accordion">
+            <div class="concept-item open">
+              <button class="concept-trigger" type="button"><span>Workflows, Jobs, Job Dependencies &amp; Steps</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> Workflows hold jobs (which run in parallel unless ordered via <code>needs:</code>). Jobs hold sequential steps (`uses:` actions or `run:` shell commands).</div>
+                <pre class="concept-code">jobs:
+  build:
+    needs: test
+    runs-on: ubuntu-latest</pre>
+              </div></div>
+            </div>
+            <div class="concept-item">
+              <button class="concept-trigger" type="button"><span>Runners, actions/checkout &amp; actions/setup-node</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> GitHub-hosted runners start completely empty. <code>actions/checkout@v4</code> clones your code; <code>actions/setup-node@v4</code> installs Node.js.</div>
+                <pre class="concept-code">- uses: actions/checkout@v4
+- uses: actions/setup-node@v4
+  with:
+    node-version: 22</pre>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="interactive-box">
+            <div class="interactive-header">
+              <h3>Interactive Mission: Execute Runner Stages</h3>
+              <button class="btn btn-cyan btn-sm" id="ch4RunBtn">▶ Run Pipeline</button>
+            </div>
+            <div id="ch4StageList" style="display:grid;gap:0.45rem;margin-bottom:0.85rem;"></div>
+            <div class="terminal-window">
+              <div class="terminal-bar"><span>Runner: ubuntu-latest</span><span id="ch4StatusBadge" class="badge badge-yellow">Ready</span></div>
+              <div class="terminal-body" id="ch4LogBody">Click "Run Pipeline" to watch all 5 steps execute with simulated logs.</div>
+            </div>
+          </div>
+
+          <div class="quiz-card" id="chapterQuizBox"></div>
+
+          <div class="chapter-footer-nav">
+            <a class="btn btn-ghost" href="chapter-3.html">← Chapter 3</a>
+            <a class="btn btn-primary" href="chapter-5.html">Next: Chapter 5 →</a>
+          </div>
+        </article>
+
+        <aside class="card right-panel-sticky">
+          <span class="badge badge-blue">Runner Architecture</span>
+          <h3 style="margin:0.5rem 0 0.75rem;font-size:1rem;">Inside ubuntu-latest</h3>
+          <ul style="font-size:0.84rem;color:var(--text-secondary);padding-left:1.2rem;display:grid;gap:0.5rem;">
+            <li><strong>Fresh VM:</strong> Zero leftover files from other runs.</li>
+            <li><strong>actions/checkout@v4:</strong> Clones repo into <code>$GITHUB_WORKSPACE</code>.</li>
+            <li><strong>actions/setup-node@v4:</strong> Pins exact Node.js v22 runtime.</li>
+            <li><strong>npm ci:</strong> Clean deterministic install from lockfile.</li>
+            <li><strong>Fail-fast:</strong> Non-zero exit code stops later steps immediately.</li>
+          </ul>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      const state = PQ.getState();
+      PQ.injectTopbarAndModal("chapters");
+      PQ.renderChapterSidebar(4);
+      PQ.initConceptAccordions();
+      PQ.renderChapterQuiz(4);
+      if (state.completedChapters.includes(4)) PQ.markChapterComplete(4);
+
+      const stages = [
+        { name: "1. Checkout code", cmd: "uses: actions/checkout@v4", log: "Cloned novacommerce/web-app@a8f3c21 into runner workspace." },
+        { name: "2. Set up Node.js", cmd: "uses: actions/setup-node@v4 (v22)", log: "Node.js v22.11.0 & npm v10.9.0 added to PATH." },
+        { name: "3. Install dependencies", cmd: "run: npm ci", log: "Installed 412 locked packages in 4.2s." },
+        { name: "4. Run tests", cmd: "run: npm test", log: "PASS src/ProfileBadge.test.js (12 tests passed)" },
+        { name: "5. Build application", cmd: "run: npm run build", log: "vite build complete -> dist/assets/index.js (48.2 kB)" }
+      ];
+
+      function renderStages(activeIdx, doneCount) {
+        document.getElementById("ch4StageList").innerHTML = stages.map((st, idx) => {
+          let badge = '<span class="badge badge-yellow">Pending</span>';
+          if (idx < doneCount) badge = '<span class="badge badge-green">✓ Done</span>';
+          else if (idx === activeIdx) badge = '<span class="badge badge-cyan">⟳ Running</span>';
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0.75rem;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-card-solid);">
+            <div><strong style="font-size:0.86rem;">${st.name}</strong><div style="font-size:0.75rem;font-family:var(--font-mono);color:var(--text-muted);">${st.cmd}</div></div>${badge}</div>`;
+        }).join("");
+      }
+
+      renderStages(-1, state.interactiveDone[4] ? 5 : 0);
+
+      let timer = null;
+      document.getElementById("ch4RunBtn").addEventListener("click", () => {
+        clearInterval(timer);
+        const logBody = document.getElementById("ch4LogBody");
+        const badge = document.getElementById("ch4StatusBadge");
+        badge.className = "badge badge-cyan";
+        badge.textContent = "Running";
+        logBody.innerHTML = '<span class="log-line-muted">[runner] Provisioned ubuntu-latest VM...</span>\n';
+        let idx = 0;
+        renderStages(0, 0);
+        timer = setInterval(() => {
+          const st = stages[idx];
+          logBody.innerHTML += `\n<span class="log-line-cmd">##[group] ${st.name}</span>\n<span class="log-line-ok">${st.log}</span>\n`;
+          logBody.scrollTop = logBody.scrollHeight;
+          idx++;
+          if (idx >= stages.length) {
+            clearInterval(timer);
+            renderStages(-1, 5);
+            badge.className = "badge badge-green";
+            badge.textContent = "Succeeded";
+            PQ.markChapterComplete(4);
+          } else {
+            renderStages(idx, idx);
+          }
+        }, 620);
+      });
+    })();
+  </script>
+</body>
+</html>

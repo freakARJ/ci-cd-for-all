@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 3: GitHub Actions — Automation Begins | Pipeline Quest</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-base="..">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="learn-layout">
+        <aside class="card sidebar-card" id="chapterSidebar"></aside>
+
+        <article class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+            <span class="badge badge-cyan">Chapter 3 of 6</span>
+            <span id="chapterStatusBadge" class="badge badge-yellow">Mission Active</span>
+          </div>
+          <h2 style="margin:0.5rem 0 0.75rem;">Chapter 3: GitHub Actions — Automation Begins</h2>
+
+          <div class="story-banner">
+            <div class="story-role">Day 2 · Opening Your Pull Request</div>
+            <div>Your branch reached GitHub and you opened a Pull Request. Instantly, a workflow defined inside <code>.github/workflows/ci.yml</code> starts running without anyone clicking a manual test button.</div>
+          </div>
+
+          <h3 style="margin:0 0 0.5rem;font-size:1rem;">Core Concepts</h3>
+          <div class="concept-accordion">
+            <div class="concept-item open">
+              <button class="concept-trigger" type="button"><span>GitHub Actions, Workflows &amp; .github/workflows/</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> GitHub Actions automates CI/CD directly inside GitHub using YAML workflow files stored in <code>.github/workflows/</code>.</div>
+                <pre class="concept-code">.github/workflows/ci.yml</pre>
+              </div></div>
+            </div>
+            <div class="concept-item">
+              <button class="concept-trigger" type="button"><span>Event Triggers (push, pull_request, workflow_dispatch)</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> The <code>on:</code> key defines what starts a workflow: pushing commits, opening/updating a Pull Request, or clicking Run manually.</div>
+                <pre class="concept-code">on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:</pre>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="interactive-box">
+            <div class="interactive-header">
+              <h3>Interactive Mission: Select an Event Trigger</h3>
+              <span class="sim-disclaimer">.github/workflows/ci.yml</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.9rem;">
+              <button class="btn btn-sm btn-ghost" data-trig="push">Event: push (to main)</button>
+              <button class="btn btn-sm btn-ghost" data-trig="pull_request">Event: pull_request</button>
+              <button class="btn btn-sm btn-ghost" data-trig="workflow_dispatch">Event: workflow_dispatch (Manual)</button>
+            </div>
+            <div id="ch3TriggerResult"></div>
+          </div>
+
+          <div class="quiz-card" id="chapterQuizBox"></div>
+
+          <div class="chapter-footer-nav">
+            <a class="btn btn-ghost" href="chapter-2.html">← Chapter 2</a>
+            <a class="btn btn-primary" href="chapter-4.html">Next: Chapter 4 →</a>
+          </div>
+        </article>
+
+        <aside class="card right-panel-sticky" id="ch3RightPanel"></aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      const state = PQ.getState();
+      PQ.injectTopbarAndModal("chapters");
+      PQ.renderChapterSidebar(3);
+      PQ.initConceptAccordions();
+      PQ.renderChapterQuiz(3);
+      if (state.completedChapters.includes(3)) PQ.markChapterComplete(3);
+
+      const map = {
+        push: ["Push Event Detected", "Commits landed on `main`. GitHub matches `on.push.branches: [main]` and runs post-merge checks/deployment."],
+        pull_request: ["Pull Request Event Detected", "PR #42 was opened or updated. GitHub runs CI checks and reports status directly on the PR."],
+        workflow_dispatch: ["Manual Dispatch Triggered", "An engineer clicked 'Run workflow' in GitHub Actions for an on-demand run."]
+      };
+
+      function selectTrigger(trig) {
+        state.ch3Trigger = trig;
+        PQ.markChapterComplete(3);
+        const [title, desc] = map[trig];
+        document.getElementById("ch3TriggerResult").innerHTML = `
+          <div class="callout success"><span class="badge badge-green">${title}</span><p style="margin:0.45rem 0 0;">${desc}</p></div>
+        `;
+        document.querySelectorAll("[data-trig]").forEach((b) => {
+          b.className = `btn btn-sm ${b.dataset.trig === trig ? "btn-cyan" : "btn-ghost"}`;
+        });
+        document.getElementById("ch3RightPanel").innerHTML = `
+          <span class="badge badge-purple">Workflow Trigger Anatomy</span>
+          <h3 style="margin:0.5rem 0 0.75rem;font-size:1rem;">.github/workflows/ci.yml</h3>
+          <pre class="concept-code">name: CI Pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm test</pre>
+          <div class="callout" style="font-size:0.83rem;"><strong>Active Trigger:</strong> <code>${trig}</code></div>
+        `;
+        PQ.saveState();
+      }
+
+      document.querySelectorAll("[data-trig]").forEach((b) => b.addEventListener("click", () => selectTrigger(b.dataset.trig)));
+      selectTrigger(state.ch3Trigger || "pull_request");
+    })();
+  </script>
+</body>
+</html>

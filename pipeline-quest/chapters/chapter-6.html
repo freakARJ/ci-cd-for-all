@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 6: Continuous Delivery and Deployment | Pipeline Quest</title>
+  <link rel="stylesheet" href="../assets/styles.css" />
+</head>
+<body data-base="..">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="learn-layout">
+        <aside class="card sidebar-card" id="chapterSidebar"></aside>
+
+        <article class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+            <span class="badge badge-cyan">Chapter 6 of 6</span>
+            <span id="chapterStatusBadge" class="badge badge-yellow">Mission Active</span>
+          </div>
+          <h2 style="margin:0.5rem 0 0.75rem;">Chapter 6: Continuous Delivery and Deployment</h2>
+
+          <div class="story-banner">
+            <div class="story-role">Day 4 · Shipping to Production 🚀</div>
+            <div>All tests passed and your Pull Request merged into <code>main</code>. Now the release pipeline injects encrypted secrets, verifies Staging, and deploys to Production!</div>
+          </div>
+
+          <h3 style="margin:0 0 0.5rem;font-size:1rem;">Core Concepts</h3>
+          <div class="concept-accordion">
+            <div class="concept-item open">
+              <button class="concept-trigger" type="button"><span>CI vs. Continuous Delivery vs. Continuous Deployment</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> CI builds &amp; tests every change. Continuous Delivery keeps code deployable behind a manual approval gate. Continuous Deployment ships every passing <code>main</code> build automatically.</div>
+              </div></div>
+            </div>
+            <div class="concept-item">
+              <button class="concept-trigger" type="button"><span>Environments, Environment Variables &amp; Secrets</span><span>▾</span></button>
+              <div class="concept-body"><div class="concept-grid">
+                <div><strong>What it means:</strong> Environments (<code>staging</code>, <code>production</code>) isolate deployments. Encrypted Secrets keep tokens safe out of Git.</div>
+                <pre class="concept-code">env:
+  DEPLOY_KEY: ${{ secrets.PROD_DEPLOY_KEY }}</pre>
+              </div></div>
+            </div>
+          </div>
+
+          <div class="interactive-box">
+            <div class="interactive-header">
+              <h3>Interactive Mission: Ship to Production</h3>
+              <button class="btn btn-success btn-sm" id="ch6DeployBtn">🚀 Animate Release Pipeline</button>
+            </div>
+            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.85rem;font-size:0.84rem;">
+              <label><input type="radio" name="cdMode" value="delivery" checked /> <strong>Continuous Delivery</strong> (Manual approval gate)</label>
+              <label><input type="radio" name="cdMode" value="deployment" /> <strong>Continuous Deployment</strong> (Automatic release)</label>
+            </div>
+            <div id="ch6FlowStatus" class="callout">Click <strong>Animate Release Pipeline</strong> to begin.</div>
+            <div id="ch6ApprovalWrap" style="display:none;margin-top:0.6rem;">
+              <button class="btn btn-cyan btn-sm" id="ch6ApproveBtn">✓ Approve Production Deployment</button>
+            </div>
+          </div>
+
+          <div class="quiz-card" id="chapterQuizBox"></div>
+
+          <div class="chapter-footer-nav">
+            <a class="btn btn-ghost" href="chapter-5.html">← Chapter 5</a>
+            <a class="btn btn-success" href="../exam.html">Take Final Assessment →</a>
+          </div>
+        </article>
+
+        <aside class="card right-panel-sticky" id="ch6RightPanel"></aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      const state = PQ.getState();
+      PQ.injectTopbarAndModal("chapters");
+      PQ.renderChapterSidebar(6);
+      PQ.initConceptAccordions();
+      PQ.renderChapterQuiz(6);
+      if (state.completedChapters.includes(6)) PQ.markChapterComplete(6);
+
+      const chain = ["Developer", "GitHub", "GitHub Actions", "Build", "Test", "Deploy (Staging)", "Production"];
+      function renderChain(activeIdx) {
+        document.getElementById("ch6RightPanel").innerHTML = `
+          <span class="badge badge-green">Release Pipeline Map</span>
+          <h3 style="margin:0.5rem 0 0.75rem;font-size:1rem;">Code to Production</h3>
+          <div style="display:grid;gap:0.4rem;">
+            ${chain.map((label, idx) => {
+              const done = activeIdx >= idx;
+              return `<div style="display:flex;justify-content:space-between;padding:0.48rem 0.75rem;border-radius:8px;border:1px solid ${done ? "var(--accent-green)" : "var(--border-subtle)"};background:${done ? "var(--green-soft)" : "var(--bg-surface)"};font-size:0.84rem;">
+                <span>${idx + 1}. ${label}</span><span>${done ? "✓" : "○"}</span></div>`;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      renderChain(state.completedChapters.includes(6) ? 6 : -1);
+
+      let timer = null;
+      const flowStatus = document.getElementById("ch6FlowStatus");
+      const approvalWrap = document.getElementById("ch6ApprovalWrap");
+
+      function finish() {
+        flowStatus.className = "callout success";
+        flowStatus.innerHTML = `<strong>Production Release Live! 🎉</strong> Deployed v1.4.0 using <code>\${{ secrets.PROD_DEPLOY_KEY }}</code>.`;
+        approvalWrap.style.display = "none";
+        PQ.markChapterComplete(6);
+        renderChain(6);
+      }
+
+      document.getElementById("ch6DeployBtn").addEventListener("click", () => {
+        clearInterval(timer);
+        approvalWrap.style.display = "none";
+        const mode = document.querySelector('input[name="cdMode"]:checked').value;
+        let i = 0;
+        flowStatus.className = "callout";
+        timer = setInterval(() => {
+          renderChain(i);
+          flowStatus.innerHTML = `<strong>Stage ${i + 1}/7:</strong> ${chain[i]} executing...`;
+          if (i === 5 && mode === "delivery") {
+            clearInterval(timer);
+            flowStatus.className = "callout warning";
+            flowStatus.innerHTML = `<strong>Paused at Environment Gate (Continuous Delivery):</strong> Waiting for Release Manager approval.`;
+            approvalWrap.style.display = "block";
+            return;
+          }
+          if (i >= 6) { clearInterval(timer); finish(); }
+          i++;
+        }, 520);
+      });
+
+      document.getElementById("ch6ApproveBtn").addEventListener("click", finish);
+    })();
+  </script>
+</body>
+</html>

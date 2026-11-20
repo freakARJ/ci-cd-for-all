@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation &amp; Reference | Pipeline Quest</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body data-base=".">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="section-header" style="margin-top:0.5rem;">
+        <div>
+          <h2>DevOps Documentation &amp; Quick Reference</h2>
+          <p>Practical definitions, real Git commands, and GitHub Actions YAML templates.</p>
+        </div>
+      </div>
+
+      <div class="tab-bar">
+        <button class="btn btn-sm btn-primary doc-tab-btn" data-doc-tab="glossary">CI/CD Glossary</button>
+        <button class="btn btn-sm btn-ghost doc-tab-btn" data-doc-tab="commands">Git Command Reference</button>
+        <button class="btn btn-sm btn-ghost doc-tab-btn" data-doc-tab="examples">GitHub Actions YAML Examples</button>
+      </div>
+
+      <div id="docTabContent"></div>
+    </main>
+  </div>
+
+  <script src="assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      PQ.injectTopbarAndModal("docs");
+
+      const GLOSSARY = [
+        { term: "Repository", desc: "A project folder tracked by Git, containing source files and complete commit history." },
+        { term: "Commit", desc: "An immutable snapshot of staged changes at a point in time." },
+        { term: "Branch", desc: "A movable pointer to a commit enabling parallel, isolated development." },
+        { term: "Origin", desc: "Git's default nickname for the remote GitHub repository." },
+        { term: "Pull Request (PR)", desc: "A proposal to merge a feature branch into another branch with code review and CI checks." },
+        { term: "Continuous Integration (CI)", desc: "Automatically building and testing every commit on a shared branch." },
+        { term: "Continuous Delivery", desc: "Keeping builds production-ready behind a manual deployment approval gate." },
+        { term: "Continuous Deployment", desc: "Automatically releasing every passing `main` build directly to production." },
+        { term: "Runner", desc: "A fresh virtual machine executing jobs inside GitHub Actions." },
+        { term: "Secrets", desc: "Encrypted credentials stored in GitHub settings and masked in workflow logs." }
+      ];
+
+      const COMMANDS = [
+        { cmd: "git status", purpose: "Inspect current branch, modified files, and staged changes.", ex: "git status" },
+        { cmd: "git checkout -b <branch>", purpose: "Create and switch to a new feature branch.", ex: "git checkout -b feat/login-form" },
+        { cmd: "git add <files>", purpose: "Move changes from working directory to staging area.", ex: "git add ." },
+        { cmd: "git commit -m \"<msg>\"", purpose: "Save staged snapshot permanently in local Git history.", ex: "git commit -m \"feat: add profile badge\"" },
+        { cmd: "git push -u origin <branch>", purpose: "Upload local branch commits to GitHub.", ex: "git push -u origin feat/login-form" },
+        { cmd: "git pull origin main", purpose: "Fetch and merge latest changes from GitHub main.", ex: "git pull origin main" },
+        { cmd: "npm ci", purpose: "Clean deterministic dependency install in CI runners.", ex: "npm ci" }
+      ];
+
+      const EXAMPLES = [
+        {
+          title: "1. Standard Node.js CI Workflow",
+          desc: "Runs clean install, tests, and build on every push to main and Pull Request.",
+          code: `name: Node CI\non:\n  push:\n    branches: [main]\n  pull_request:\n\njobs:\n  build-and-test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 22\n      - run: npm ci\n      - run: npm test\n      - run: npm run build`
+        },
+        {
+          title: "2. Multi-Job CI/CD with Production Environment",
+          desc: "Uses job dependency (`needs: test`) and GitHub Secrets for deployment.",
+          code: `name: Deploy Pipeline\non:\n  push:\n    branches: [main]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm ci && npm test\n\n  deploy:\n    needs: test\n    runs-on: ubuntu-latest\n    environment: production\n    steps:\n      - uses: actions/checkout@v4\n      - run: echo "Deploying safely"\n        env:\n          DEPLOY_TOKEN: \${{ secrets.PROD_TOKEN }}`
+        }
+      ];
+
+      function renderTab(name) {
+        document.querySelectorAll(".doc-tab-btn").forEach((b) => {
+          b.className = `btn btn-sm doc-tab-btn ${b.dataset.docTab === name ? "btn-primary" : "btn-ghost"}`;
+        });
+        const box = document.getElementById("docTabContent");
+        if (name === "glossary") {
+          box.innerHTML = `<div class="ref-grid">${GLOSSARY.map((i) => `<div class="card"><span class="badge badge-cyan" style="margin-bottom:0.5rem;">Term</span><h4 style="margin:0 0 0.4rem;">${i.term}</h4><p style="margin:0;font-size:0.86rem;color:var(--text-secondary);">${i.desc}</p></div>`).join("")}</div>`;
+        } else if (name === "commands") {
+          box.innerHTML = `<div class="ref-grid">${COMMANDS.map((i) => `<div class="card"><code style="font-weight:700;color:var(--accent-cyan);">${PQ.escapeHtml(i.cmd)}</code><p style="margin:0.45rem 0;font-size:0.86rem;color:var(--text-secondary);">${PQ.escapeHtml(i.purpose)}</p><pre class="concept-code">${PQ.escapeHtml(i.ex)}</pre></div>`).join("")}</div>`;
+        } else {
+          box.innerHTML = `<div style="display:grid;gap:1rem;">${EXAMPLES.map((i) => `<div class="card"><h3 style="margin:0 0 0.35rem;">${i.title}</h3><p style="margin:0 0 0.75rem;font-size:0.86rem;color:var(--text-secondary);">${i.desc}</p><pre class="concept-code">${PQ.escapeHtml(i.code)}</pre></div>`).join("")}</div>`;
+        }
+      }
+
+      document.querySelectorAll(".doc-tab-btn").forEach((b) => b.addEventListener("click", () => renderTab(b.dataset.docTab)));
+      renderTab("glossary");
+    })();
+  </script>
+</body>
+</html>

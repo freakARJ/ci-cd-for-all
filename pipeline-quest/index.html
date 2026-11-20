@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline Quest — Learn Git, GitHub Actions &amp; CI/CD</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body data-base=".">
+  <div class="app-bg-grid"></div>
+  <div class="app-wrapper">
+    <header class="topbar" id="sharedTopbar"></header>
+
+    <main class="container">
+      <div class="hero">
+        <div>
+          <span class="badge badge-cyan">Interactive Story-Driven DevOps Lab</span>
+          <h1>From Your First Commit to Production Deployment</h1>
+          <p>
+            Learn Git, GitHub Actions, CI/CD and DevOps by building, breaking, fixing, and shipping.
+            Step into the shoes of a junior software engineer shipping your first production feature.
+          </p>
+          <div class="hero-cta-group">
+            <a class="btn btn-cyan" href="chapters/chapter-1.html">Start Your Journey</a>
+            <a class="btn btn-ghost" href="playground.html">Open Pipeline Playground</a>
+            <a class="btn btn-ghost" href="docs.html">Command &amp; YAML Reference</a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-box">
+              <div class="stat-value" id="heroChaptersDone">0 / 6</div>
+              <div class="stat-label">Story Chapters Completed</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="heroQuizScore">0 pts</div>
+              <div class="stat-label">Knowledge Check Score</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value" id="heroFinalBadge">Pending</div>
+              <div class="stat-label">Final Assessment</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+            <div>
+              <strong style="font-size:0.95rem;">Live CI/CD Pipeline Preview</strong>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">Simulated workflow execution</div>
+            </div>
+            <button class="btn btn-sm btn-primary" id="heroPreviewRunBtn">Run Preview</button>
+          </div>
+          <svg viewBox="0 0 440 245" width="100%" aria-label="Pipeline preview diagram">
+            <path id="hp-e1" class="pipeline-edge" d="M 110 42 L 160 42" />
+            <path id="hp-e2" class="pipeline-edge" d="M 275 42 L 325 42" />
+            <path id="hp-e3" class="pipeline-edge" d="M 380 68 L 380 104" />
+            <path id="hp-e4" class="pipeline-edge" d="M 325 130 L 275 130" />
+            <path id="hp-e5" class="pipeline-edge" d="M 160 130 L 110 130" />
+            <path id="hp-e6" class="pipeline-edge" d="M 60 156 L 60 192" />
+            <path id="hp-e7" class="pipeline-edge" d="M 110 215 L 180 215" />
+
+            <g id="hp-n0" class="pipeline-node"><rect class="node-box" x="10" y="18" width="100" height="48"/><text x="60" y="46" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">Developer</text></g>
+            <g id="hp-n1" class="pipeline-node"><rect class="node-box" x="160" y="18" width="115" height="48"/><text x="217" y="46" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">Git Commit/Push</text></g>
+            <g id="hp-n2" class="pipeline-node"><rect class="node-box" x="325" y="18" width="105" height="48"/><text x="377" y="46" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">GitHub Repo</text></g>
+            <g id="hp-n3" class="pipeline-node"><rect class="node-box" x="325" y="106" width="105" height="48"/><text x="377" y="134" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">Actions Trigger</text></g>
+            <g id="hp-n4" class="pipeline-node"><rect class="node-box" x="160" y="106" width="115" height="48"/><text x="217" y="134" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">Build &amp; Deps</text></g>
+            <g id="hp-n5" class="pipeline-node"><rect class="node-box" x="10" y="106" width="100" height="48"/><text x="60" y="134" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">Auto Tests</text></g>
+            <g id="hp-n6" class="pipeline-node"><rect class="node-box" x="10" y="191" width="100" height="48"/><text x="60" y="219" text-anchor="middle" fill="currentColor" font-size="11" font-weight="600">Deploy Gate</text></g>
+            <g id="hp-n7" class="pipeline-node"><rect class="node-box" x="180" y="191" width="250" height="48"/><text x="305" y="219" text-anchor="middle" fill="currentColor" font-size="11" font-weight="700">Production Live 🚀</text></g>
+          </svg>
+          <div id="heroPreviewStatus" style="margin-top:0.65rem;font-size:0.82rem;color:var(--text-secondary);">
+            Click <strong>Run Preview</strong> to watch code flow from commit to production.
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div>
+          <h2>Story Learning Roadmap</h2>
+          <p>Open any chapter file, complete interactive missions, and verify your skills.</p>
+        </div>
+        <a class="btn btn-ghost btn-sm" href="exam.html">Take Final Assessment (10 Qs)</a>
+      </div>
+
+      <div class="roadmap-grid" id="homeChapterCards"></div>
+    </main>
+  </div>
+
+  <script src="assets/shared.js"></script>
+  <script>
+    (function () {
+      const PQ = window.PipelineQuest;
+      PQ.injectTopbarAndModal("home");
+
+      const state = PQ.getState();
+      const { chCount, quizCorrect } = PQ.computeProgress();
+      document.getElementById("heroChaptersDone").textContent = `${chCount} / 6`;
+      document.getElementById("heroQuizScore").textContent = `${quizCorrect * 10} pts`;
+      if (state.finalExamSubmitted) {
+        document.getElementById("heroFinalBadge").textContent = "Completed ✓";
+      }
+
+      document.getElementById("homeChapterCards").innerHTML = PQ.CHAPTER_META.map((ch) => {
+        const isDone = state.completedChapters.includes(ch.id);
+        return `
+          <a class="card chapter-card" href="${ch.file}">
+            <div>
+              <div class="chapter-card-top">
+                <span class="chapter-num">CHAPTER 0${ch.id}</span>
+                ${isDone ? '<span class="badge badge-green">✓ Completed</span>' : '<span class="badge badge-blue">Interactive Mission</span>'}
+              </div>
+              <h3>${ch.shortTitle}</h3>
+              <p>${ch.summary}</p>
+              <div class="chapter-tags">
+                ${ch.tags.map((t) => `<span class="tag-pill">${t}</span>`).join("")}
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding-top:0.5rem;border-top:1px solid var(--border-subtle);">
+              <span style="font-size:0.8rem;color:var(--text-secondary);">${ch.quiz.length} Knowledge Checks</span>
+              <span style="font-size:0.85rem;font-weight:600;color:var(--accent-cyan);">Enter Chapter →</span>
+            </div>
+          </a>
+        `;
+      }).join("");
+
+      let timer = null;
+      document.getElementById("heroPreviewRunBtn").addEventListener("click", () => {
+        clearInterval(timer);
+        const nodes = Array.from({ length: 8 }, (_, i) => document.getElementById(`hp-n${i}`));
+        const edges = Array.from({ length: 7 }, (_, i) => document.getElementById(`hp-e${i + 1}`));
+        const statusEl = document.getElementById("heroPreviewStatus");
+        const labels = [
+          "Developer updates ProfileBadge.js locally...",
+          "Git commit recorded & pushed to feature branch...",
+          "GitHub repository receives push & PR event...",
+          "GitHub Actions triggers CI workflow on ubuntu-latest...",
+          "Dependencies installed & app built cleanly...",
+          "All 24 unit & integration tests passed...",
+          "Approval gate verified for production environment...",
+          "Deployment complete! Feature is live in Production 🚀"
+        ];
+        nodes.forEach((n) => n.setAttribute("class", "pipeline-node"));
+        edges.forEach((e) => e.setAttribute("class", "pipeline-edge"));
+        let step = 0;
+        nodes[0].setAttribute("class", "pipeline-node running");
+        statusEl.innerHTML = `<span class="badge badge-cyan">Running</span> ${labels[0]}`;
+        timer = setInterval(() => {
+          nodes[step].setAttribute("class", "pipeline-node success");
+          if (step < edges.length) edges[step].setAttribute("class", "pipeline-edge done");
+          step++;
+          if (step >= nodes.length) {
+            clearInterval(timer);
+            statusEl.innerHTML = `<span class="badge badge-green">Success</span> ${labels[7]}`;
+            return;
+          }
+          nodes[step].setAttribute("class", "pipeline-node running");
+          if (step - 1 < edges.length) edges[step - 1].setAttribute("class", "pipeline-edge active");
+          statusEl.innerHTML = `<span class="badge badge-cyan">Step ${step + 1}/8</span> ${labels[step]}`;
+        }, 620);
+      });
+    })();
+  </script>
+</body>
+</html>
