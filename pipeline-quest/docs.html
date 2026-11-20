@@ -19,10 +19,39 @@
         </div>
       </div>
 
-      <div class="tab-bar">
-        <button class="btn btn-sm btn-primary doc-tab-btn" data-doc-tab="glossary">CI/CD Glossary</button>
-        <button class="btn btn-sm btn-ghost doc-tab-btn" data-doc-tab="commands">Git Command Reference</button>
-        <button class="btn btn-sm btn-ghost doc-tab-btn" data-doc-tab="examples">GitHub Actions YAML Examples</button>
+      <section class="doc-quest-header" aria-label="Documentation learning progress">
+        <div class="doc-quest-profile">
+          <div class="doc-level-orb" id="docLevelOrb">1</div>
+          <div>
+            <span class="doc-eyebrow">Documentation Adventure</span>
+            <h3>DevOps Knowledge Quest</h3>
+          </div>
+        </div>
+        <div class="doc-quest-stats">
+          <div><span class="doc-stat-label">XP</span><strong id="docXp">0</strong></div>
+          <div><span class="doc-stat-label">Streak</span><strong id="docStreak">0</strong></div>
+        </div>
+        <div class="doc-xp-track" aria-label="Quest level progress">
+          <div class="doc-xp-fill" id="docXpFill"></div>
+        </div>
+      </section>
+
+      <div class="doc-missions" role="tablist" aria-label="Learning missions">
+        <button class="doc-mission active" role="tab" aria-selected="true" data-doc-tab="glossary">
+          <span class="doc-mission-icon">🧠</span>
+          <span><strong>Term Trail</strong><small>Match DevOps concepts</small></span>
+          <span class="doc-mission-state" id="glossaryState">0/10</span>
+        </button>
+        <button class="doc-mission" role="tab" aria-selected="false" data-doc-tab="commands">
+          <span class="doc-mission-icon">⌨️</span>
+          <span><strong>Command Cave</strong><small>Choose the right Git tool</small></span>
+          <span class="doc-mission-state" id="commandsState">0/7</span>
+        </button>
+        <button class="doc-mission" role="tab" aria-selected="false" data-doc-tab="examples">
+          <span class="doc-mission-icon">🧩</span>
+          <span><strong>YAML Lab</strong><small>Unlock workflow recipes</small></span>
+          <span class="doc-mission-state" id="examplesState">0/2</span>
+        </button>
       </div>
 
       <div id="docTabContent"></div>
@@ -71,21 +100,259 @@
         }
       ];
 
-      function renderTab(name) {
-        document.querySelectorAll(".doc-tab-btn").forEach((b) => {
-          b.className = `btn btn-sm doc-tab-btn ${b.dataset.docTab === name ? "btn-primary" : "btn-ghost"}`;
-        });
-        const box = document.getElementById("docTabContent");
-        if (name === "glossary") {
-          box.innerHTML = `<div class="ref-grid">${GLOSSARY.map((i) => `<div class="card"><span class="badge badge-cyan" style="margin-bottom:0.5rem;">Term</span><h4 style="margin:0 0 0.4rem;">${i.term}</h4><p style="margin:0;font-size:0.86rem;color:var(--text-secondary);">${i.desc}</p></div>`).join("")}</div>`;
-        } else if (name === "commands") {
-          box.innerHTML = `<div class="ref-grid">${COMMANDS.map((i) => `<div class="card"><code style="font-weight:700;color:var(--accent-cyan);">${PQ.escapeHtml(i.cmd)}</code><p style="margin:0.45rem 0;font-size:0.86rem;color:var(--text-secondary);">${PQ.escapeHtml(i.purpose)}</p><pre class="concept-code">${PQ.escapeHtml(i.ex)}</pre></div>`).join("")}</div>`;
-        } else {
-          box.innerHTML = `<div style="display:grid;gap:1rem;">${EXAMPLES.map((i) => `<div class="card"><h3 style="margin:0 0 0.35rem;">${i.title}</h3><p style="margin:0 0 0.75rem;font-size:0.86rem;color:var(--text-secondary);">${i.desc}</p><pre class="concept-code">${PQ.escapeHtml(i.code)}</pre></div>`).join("")}</div>`;
-        }
+      const STORAGE_KEY = "pipelineQuestDocsGame";
+      const savedGame = (() => {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+        catch (_) { return {}; }
+      })();
+      const game = {
+        xp: Number(savedGame.xp) || 0,
+        streak: Number(savedGame.streak) || 0,
+        glossary: Array.isArray(savedGame.glossary) ? savedGame.glossary : [],
+        commands: Array.isArray(savedGame.commands) ? savedGame.commands : [],
+        examples: Array.isArray(savedGame.examples) ? savedGame.examples : []
+      };
+      let glossaryIndex = 0;
+      let commandIndex = 0;
+      let exampleIndex = 0;
+
+      function saveGame() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(game));
+        updateQuestHeader();
       }
 
-      document.querySelectorAll(".doc-tab-btn").forEach((b) => b.addEventListener("click", () => renderTab(b.dataset.docTab)));
+      function awardXP(amount) {
+        game.xp += amount;
+        game.streak += 1;
+        saveGame();
+      }
+
+      function updateQuestHeader() {
+        const level = Math.floor(game.xp / 100) + 1;
+        document.getElementById("docXp").textContent = game.xp;
+        document.getElementById("docStreak").textContent = `${game.streak} 🔥`;
+        document.getElementById("docLevelOrb").textContent = level;
+        document.getElementById("docXpFill").style.width = `${game.xp % 100}%`;
+        document.getElementById("glossaryState").textContent = `${game.glossary.length}/${GLOSSARY.length}`;
+        document.getElementById("commandsState").textContent = `${game.commands.length}/${COMMANDS.length}`;
+        document.getElementById("examplesState").textContent = `${game.examples.length}/${EXAMPLES.length}`;
+      }
+
+      function getDistractors(items, key, answer, count) {
+        return items.map((item) => item[key]).filter((value) => value !== answer).slice(0, count);
+      }
+
+      function shuffle(items) {
+        return [...items].sort(() => Math.random() - 0.5);
+      }
+
+      function renderGlossary() {
+        const box = document.getElementById("docTabContent");
+        if (glossaryIndex >= GLOSSARY.length) glossaryIndex = 0;
+        const item = GLOSSARY[glossaryIndex];
+        const mastered = game.glossary.includes(glossaryIndex);
+        const options = shuffle([item.desc, ...getDistractors(GLOSSARY, "desc", item.desc, 3)]);
+
+        box.innerHTML = `
+          <section class="doc-game-panel">
+            <div class="doc-game-heading">
+              <div><span class="doc-eyebrow">Term Trail • Card ${glossaryIndex + 1} of ${GLOSSARY.length}</span><h3>Which definition matches?</h3></div>
+              ${mastered ? '<span class="badge badge-green">✓ Mastered</span>' : '<span class="badge badge-purple">New card</span>'}
+            </div>
+            <div class="term-card" id="termCard">
+              <span class="term-card-kicker">DevOps term</span>
+              <strong>${PQ.escapeHtml(item.term)}</strong>
+              <button class="term-flip-btn" id="termFlipBtn" type="button">Tap to reveal hint</button>
+            </div>
+            <div class="term-options" id="termOptions">
+              ${options.map((option, index) => `<button type="button" class="term-option" data-answer="${option === item.desc}" data-option="${index}">
+                <span>${String.fromCharCode(65 + index)}</span>${PQ.escapeHtml(option)}
+              </button>`).join("")}
+            </div>
+            <div class="doc-game-footer">
+              <button class="btn btn-ghost" id="prevTerm" ${glossaryIndex === 0 ? "disabled" : ""}>← Previous</button>
+              <span id="termFeedback" class="doc-feedback">Choose the best answer</span>
+              <button class="btn btn-primary" id="nextTerm">Next card →</button>
+            </div>
+          </section>
+        `;
+
+        document.getElementById("termFlipBtn").addEventListener("click", () => {
+          document.getElementById("termCard").classList.toggle("hint-visible");
+          const hint = item.desc.split(" ").slice(0, 5).join(" ") + "...";
+          document.getElementById("termFlipBtn").textContent = hint;
+        });
+        document.querySelectorAll(".term-option").forEach((button) => {
+          button.addEventListener("click", () => {
+            const correct = button.dataset.answer === "true";
+            const feedback = document.getElementById("termFeedback");
+            document.querySelectorAll(".term-option").forEach((option) => option.disabled = true);
+            button.classList.add(correct ? "correct" : "incorrect");
+            if (correct) {
+              if (!game.glossary.includes(glossaryIndex)) {
+                game.glossary.push(glossaryIndex);
+                awardXP(10);
+              }
+              feedback.textContent = "Perfect! +10 XP";
+              feedback.className = "doc-feedback success";
+            } else {
+              game.streak = 0;
+              saveGame();
+              feedback.textContent = "Nice try — review the definition and continue.";
+              feedback.className = "doc-feedback retry";
+              const rightAnswer = document.querySelector('.term-option[data-answer="true"]');
+              if (rightAnswer) rightAnswer.classList.add("correct");
+            }
+          });
+        });
+        document.getElementById("prevTerm").addEventListener("click", () => { glossaryIndex = Math.max(0, glossaryIndex - 1); renderGlossary(); });
+        document.getElementById("nextTerm").addEventListener("click", () => { glossaryIndex = (glossaryIndex + 1) % GLOSSARY.length; renderGlossary(); });
+      }
+
+      function renderCommands() {
+        const box = document.getElementById("docTabContent");
+        if (commandIndex >= COMMANDS.length) commandIndex = 0;
+        const item = COMMANDS[commandIndex];
+        const options = shuffle([item.cmd, ...getDistractors(COMMANDS, "cmd", item.cmd, 3)]);
+
+        box.innerHTML = `
+          <section class="doc-game-panel command-mission">
+            <div class="doc-game-heading">
+              <div><span class="doc-eyebrow">Command Cave • Challenge ${commandIndex + 1} of ${COMMANDS.length}</span><h3>Choose the right command</h3></div>
+              <span class="badge badge-cyan">${game.commands.length} solved</span>
+            </div>
+            <div class="mission-prompt">
+              <span class="prompt-avatar">🧙</span>
+              <p><strong>Mission:</strong> ${PQ.escapeHtml(item.purpose)}</p>
+            </div>
+            <div class="command-terminal">
+              <div class="terminal-bar"><span><i></i><i></i><i></i></span><span>quest-terminal</span></div>
+              <div class="command-line"><span>$</span><span id="commandPreview">waiting for input...</span></div>
+            </div>
+            <div class="command-options">
+              ${options.map((option) => `<button type="button" class="command-option" data-answer="${option === item.cmd}" data-command="${PQ.escapeHtml(option)}">${PQ.escapeHtml(option)}</button>`).join("")}
+            </div>
+            <div class="doc-game-footer">
+              <button class="btn btn-ghost" id="prevCommand" ${commandIndex === 0 ? "disabled" : ""}>← Previous</button>
+              <span id="commandFeedback" class="doc-feedback">Run the best command</span>
+              <button class="btn btn-primary" id="nextCommand">Next challenge →</button>
+            </div>
+          </section>
+        `;
+
+        document.querySelectorAll(".command-option").forEach((button) => {
+          button.addEventListener("click", () => {
+            const correct = button.dataset.answer === "true";
+            const feedback = document.getElementById("commandFeedback");
+            document.getElementById("commandPreview").textContent = button.dataset.command;
+            document.querySelectorAll(".command-option").forEach((option) => option.disabled = true);
+            button.classList.add(correct ? "correct" : "incorrect");
+            if (correct) {
+              if (!game.commands.includes(commandIndex)) {
+                game.commands.push(commandIndex);
+                awardXP(15);
+              }
+              document.getElementById("commandPreview").classList.add("command-success");
+              feedback.textContent = `Success! Run: ${item.ex}`;
+              feedback.className = "doc-feedback success";
+            } else {
+              game.streak = 0;
+              saveGame();
+              feedback.textContent = "Not quite — the glowing option shows the correct command.";
+              feedback.className = "doc-feedback retry";
+              const rightAnswer = document.querySelector('.command-option[data-answer="true"]');
+              if (rightAnswer) rightAnswer.classList.add("correct");
+            }
+          });
+        });
+        document.getElementById("prevCommand").addEventListener("click", () => { commandIndex = Math.max(0, commandIndex - 1); renderCommands(); });
+        document.getElementById("nextCommand").addEventListener("click", () => { commandIndex = (commandIndex + 1) % COMMANDS.length; renderCommands(); });
+      }
+
+      function renderExamples() {
+        const box = document.getElementById("docTabContent");
+        if (exampleIndex >= EXAMPLES.length) exampleIndex = 0;
+        const item = EXAMPLES[exampleIndex];
+        const blanks = [
+          { label: "checkout", value: "actions/checkout@v4" },
+          { label: "runtime", value: "ubuntu-latest" },
+          { label: "install", value: "npm ci" }
+        ];
+        box.innerHTML = `
+          <section class="doc-game-panel yaml-mission">
+            <div class="doc-game-heading">
+              <div><span class="doc-eyebrow">YAML Lab • Recipe ${exampleIndex + 1} of ${EXAMPLES.length}</span><h3>Complete the workflow recipe</h3></div>
+              <span class="badge badge-purple">${game.examples.length} unlocked</span>
+            </div>
+            <div class="mission-prompt">
+              <span class="prompt-avatar">⚗️</span>
+              <p><strong>Power-up goal:</strong> ${PQ.escapeHtml(item.desc)}</p>
+            </div>
+            <div class="yaml-lab-grid">
+              <div class="yaml-recipe">
+                <div class="yaml-recipe-title">${PQ.escapeHtml(item.title)}</div>
+                <pre class="yaml-puzzle-code" id="yamlPuzzleCode">${PQ.escapeHtml(item.code)}</pre>
+              </div>
+              <div class="yaml-powerups">
+                <p>Choose a power-up to inspect</p>
+                ${blanks.map((blank, index) => `
+                  <button type="button" class="yaml-powerup" data-answer="${index === 0}">
+                    <span>★</span><code>${PQ.escapeHtml(blank.label)}</code><small>${index === 0 ? "Reveal usage" : "Locked clue"}</small>
+                  </button>
+                `).join("")}
+                <button type="button" class="btn btn-success" id="unlockExample">Unlock full recipe</button>
+                <span class="doc-feedback" id="yamlFeedback">Explore each power-up</span>
+              </div>
+            </div>
+            <div class="doc-game-footer">
+              <button class="btn btn-ghost" id="prevExample" ${exampleIndex === 0 ? "disabled" : ""}>← Previous</button>
+              <span class="doc-feedback">No syntax knowledge required — collect the clues</span>
+              <button class="btn btn-primary" id="nextExample">Next recipe →</button>
+            </div>
+          </section>
+        `;
+
+        let inspected = 0;
+        document.querySelectorAll(".yaml-powerup").forEach((button) => {
+          button.addEventListener("click", () => {
+            if (!button.classList.contains("used")) {
+              button.classList.add("used");
+              inspected += 1;
+              const index = [...document.querySelectorAll(".yaml-powerup")].indexOf(button);
+              button.querySelector("small").textContent = blanks[index].value;
+            }
+            document.getElementById("yamlFeedback").textContent = `${inspected}/3 power-ups collected`;
+            document.getElementById("yamlFeedback").className = "doc-feedback success";
+          });
+        });
+        document.getElementById("unlockExample").addEventListener("click", () => {
+          if (!game.examples.includes(exampleIndex)) {
+            game.examples.push(exampleIndex);
+            awardXP(25);
+          }
+          document.querySelector(".yaml-recipe").classList.add("unlocked");
+          document.getElementById("yamlFeedback").textContent = `Recipe unlocked! +25 XP`;
+          document.getElementById("yamlFeedback").className = "doc-feedback success";
+        });
+        document.getElementById("prevExample").addEventListener("click", () => { exampleIndex = Math.max(0, exampleIndex - 1); renderExamples(); });
+        document.getElementById("nextExample").addEventListener("click", () => { exampleIndex = (exampleIndex + 1) % EXAMPLES.length; renderExamples(); });
+      }
+
+      function renderTab(name) {
+        document.querySelectorAll(".doc-mission").forEach((button) => {
+          const active = button.dataset.docTab === name;
+          button.classList.toggle("active", active);
+          button.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        if (name === "glossary") renderGlossary();
+        else if (name === "commands") renderCommands();
+        else renderExamples();
+      }
+
+      document.querySelectorAll(".doc-mission").forEach((button) => {
+        button.addEventListener("click", () => renderTab(button.dataset.docTab));
+      });
+      updateQuestHeader();
       renderTab("glossary");
     })();
   </script>
